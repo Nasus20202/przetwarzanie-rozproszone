@@ -34,23 +34,80 @@ Samo zdarzenie jest mało prawdopodobne, ponieważ pakiety są wysyłane tylko w
 Gracz wysyła tylko informacje o akcjach które wykonuje (wysyła np "zaczynam iść do przodu", a nie "moja pozycja to X Y"), a serwer sam symuluje stan gry, który potem rozsyła innym klientom. Dzięki takiemu rozwiązaniu oszukiwanie nie będzie możliwe.
 
 = Struktura komunikatów
+Każdy komunikat zawiera dodatkowo umieszczone na początku 1-bajtowe pole #emph([packet_id]) oznaczające jego rodzaj.
+#set align(center)
 #table(
   columns: (auto, auto, auto),
-  table.cell(colspan: 3, align(center)[*Dołączenie do gry*], align: center),
+  table.cell(colspan: 3, align(center)[*Dołączenie do gry (Klient -> Serwer)*], align: center),
   align(center)[*Nazwa pola*], align(center)[*Typ danych*], align(center)[*Opis*],
   [nick_length], [int32], [Długość nicku gracza (maksymalnie: 20)],
   [nick], [char[]], [Nick gracza o długości nick_length],
 )
+#set align(left)
+#table(
+  columns: (auto, auto, auto),
+  table.cell(colspan: 3, align(center)[*Przesłanie informacji o mapie (Serwer -> Klient)*], align: center),
+  align(center)[*Nazwa pola*], align(center)[*Typ danych*], align(center)[*Opis*],
+  [player_id], [int32], [id, jakie zostało nadane temu graczowi],
+  [width], [int32], [Szerokość mapy],
+  [height], [int32], [Wysokość mapy],
+  [tiles], [MapTile[]], [Tablica kafelków mapy o rozmiarach width*height, każdy kafelek ma rozmiar 4 bajtów],
+)
+
+#table(
+  columns: (100%),
+  table.cell(align(center)[*Informacja o gotowości gracza (Klient -> Serwer)*], align: center),
+  table.cell(align(center)[Przesyłany jest jedynie odpowiedni #emph([packet_id])], align: center),
+)
+
+#table(
+  columns: (100%),
+  table.cell(align(center)[*Informacja o rozpoczęciu gry (Serwer -> Klient)*], align: center),
+  table.cell(align(center)[Przesyłany jest jedynie odpowiedni #emph([packet_id])], align: center),
+)
 
 #table(
   columns: (auto, auto, auto),
-  table.cell(colspan: 3, align(center)[*Przesłanie informacji o mapie*], align: center),
+  table.cell(colspan: 3, align(center)[*Akcja od gracza [UDP] (Klient -> Serwer)*], align: center),
   align(center)[*Nazwa pola*], align(center)[*Typ danych*], align(center)[*Opis*],
-  [width], [int32], [Szerokość mapy],
-  [height], [int32], [Długość mapy],
-  [tiles], [MapTile[]], [Tablica kafelków mapy o rozmiarach width*height, każdy kafelek ma rozmiar 4 bajtów]
+  [action], [int32(enum)], [Jedna z wartości:\ 0 - poruszanie się w górę, 1 - poruszanie się w dół, 2 - poruszanie się w lewo, 3 - poruszanie się w prawo, 4 - wystrzelenie pocisku w górę, 5 - wystrzelenie pocisku w dół, 6 - wystrzelenie pocisku w lewo, 7 - wystrzelenie pocisku w prawo, 8 - zatrzymanie ruchu gracza],
 )
 
+#table(
+  columns: (auto, auto, auto),
+  table.cell(colspan: 3, align(center)[*Propagacja akcji [UDP] (Serwer -> Klient)*], align: center),
+  align(center)[*Nazwa pola*], align(center)[*Typ danych*], align(center)[*Opis*],
+  [action], [int32(enum)], [Jedna z wartości:\ 0 - poruszanie się w górę, 1 - poruszanie się w dół, 2 - poruszanie się w lewo, 3 - poruszanie się w prawo, 4 - wystrzelenie pocisku w górę, 5 - wystrzelenie pocisku w dół, 6 - wystrzelenie pocisku w lewo, 7 - wystrzelenie pocisku w prawo, 8 - zatrzymanie ruchu gracza],
+  [player_id], [int32], [id gracza, którego dotyczy akcja]
+)
+#set align(center)
+#table(
+  columns: (auto, auto, auto),
+  table.cell(colspan: 3, align(center)[*Informacja o końcu gry (Serwer -> Klient)*], align: center),
+  align(center)[*Nazwa pola*], align(center)[*Typ danych*], align(center)[*Opis*],
+  [scores_len], [int32], [Długość tablicy wyników],
+  [scores], [PlayerScore[]], [Tablica struktur PlayerScore.\ Pola struktury:\ #emph[player_id] - id gracza (int32)\ #emph[score] - wynik gracza (int32)\ Rozmiar: 8 bajtów]
+)
+#set align(left)
+#table(
+  columns: (100%),
+  table.cell(align(center)[*Informacja o opuszczeniu gry (Klient -> Serwer)*], align: center),
+  table.cell(align(center)[Przesyłany jest jedynie odpowiedni #emph([packet_id])], align: center),
+)
+#pagebreak()
+#table(
+  columns: (auto, auto, auto),
+  table.cell(colspan: 3, align(center)[*Synchronizacja stanu gry (Serwer -> Klient)*], align: center),
+  align(center)[*Nazwa pola*], align(center)[*Typ danych*], align(center)[*Opis*],
+  [players_num], [int32], [Ilość graczy w grze],
+  [players], [Player[]], [Tablica struktur Player.\ Pola struktury:\ #emph([player_id]) - id gracza (int32)\ #emph([x, y]) - koordynaty gracza (2*int32)\ #emph([score]) - wynik gracza (int32)\ Rozmiar: 16 bajtów],
+  [bullets_num], [int32], [Ilość aktualnie wystrzelonych pocisków],
+  [bullets], [Bullet[]], [Tablica struktur Bullet.\ Pola struktury:\ #emph([owner_id]) - id gracza, który wystrzelił pocisk (int32)\ #emph([x, y]) - koordynaty pocisku (2*int32)\ Rozmiar: 12 bajtów],
+  [width], [int32], [Szerokość mapy],
+  [height], [int32], [Wysokość mapy],
+  [tiles], [MapTile[]], [Tablica kafelków mapy o rozmiarach width*height, każdy kafelek ma rozmiar 4 bajtów],
+)
+#set align(left)
 #pagebreak()
 = Diagram sekwencji
 #align(center)[#image("diagrams/sequence.png", height: 95%)]
@@ -70,7 +127,7 @@ Następnie przeprowadzana jest symulacja ticku.
 - Następnie sprawdzana jest kolizja ze ścianami mapy. W przypadku próby wejścia w ścianę, gracz jest zatrzymywany. Jeśli gracz ma ulepszenie, które pozwala na przechodzenie przez ściany, to nie jest zatrzymywany. Jeśli ulepszenie to się skończyło, a gracz jest "w ścianie", przesuwamy go na najbliższe wolne pole według ustalonego algorytmu.
 - Sprawdzamy kolizje z ulepszeniami. Jeśli gracz wejdzie na pole z ulepszeniem, gracz podnosi je, a ulepszenie znika z mapy. Jeśli gracz już ma inne ulepszenie, to zostaje ono zastąpione nowym.
 - Następnie przesuwane są pociski, które sprawdzają kolizje z graczami oraz ścianami. W przypadku kolizji z graczem, gracz ginie, a strzelec zdobywa punkt. W przypadku kolizji z ścianą pocisk znika.
-- Jeśli gracz zginął w tym tricku, to jest on przesuwany na ustalone pole odrodzenia, jeśli jest zajęte to wybierane jest najbliższe puste pole według ustalonego algorytmu.
+- Jeśli gracz zginął w tym ticku, to jest on przesuwany na ustalone pole odrodzenia, jeśli jest zajęte to wybierane jest najbliższe puste pole według ustalonego algorytmu.
 
 Po upłynięciu określonego czasu gry mecz kończy się. Serwer wysyła informację o zakończeniu gry do wszystkich klientów. Klienci otrzymują informację o zwycięzcy oraz wynikach meczu. Klienci mogą ponownie potwierdzić gotowość i zagrać kolejny mecz, lub opuścić poczekalnię i rozłączyć się z serwerem.
 
