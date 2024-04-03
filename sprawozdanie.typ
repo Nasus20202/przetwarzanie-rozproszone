@@ -15,7 +15,7 @@
 Celem projektu było stworzenie gry deathmatch, w której gracze mogą walczyć ze sobą na arenie. Do stworzenia gry użyto języka C++ oraz biblioteki Boost. Gra działa w trybie tekstowym, sterowanie odbywa się za pomocą klawiatury. Gracze mogą poruszać się po arenie, strzelać do siebie oraz zbierać ulepszenia (np szybsze strzelanie). Grę wygrywa gracz, który zdobędzie wcześniej określoną liczbę punktów, które zdobywa się poprzez eliminację przeciwników.
 
 == Działanie z punktu widzenia użytkownika
-Na początku gracz wpisuje IP serwera, na którym chce grać. Następnie gracz wybiera nick, którym będzie się posługiwał w grze. Po wybraniu nicku gracz dołącza do lobby gdzie widzi wszystkich innych graczy i może zaznaczyć gotowość. Po zaznaczeniu gotowości przez wszystkich użytkowników rozpoczyna się rozgrywka. Gracz może poruszać się po arenie za pomocą klawiszy W, A, S, D i strzelać za pomocą strzałek. Po wejściu na pole z ulepszeniem gracz je automatycznie podnosi. Za każdą eliminację przeciwnika gracz zdobywa punkt. Grę wygrywa gracz, który zdobędzie wcześniej określoną liczbę punktów.
+Na początku gracz łączy się z serwerem nadrzędnym, który jest odgórnie zdefiniowany. Po nawiązaniu połączenia, użytkownik ma możliwość wyboru konkretnego serwera gry z listy. Po wybraniu odpowiedniego, gracz zostaje do niego połączony. Następnie wybiera nick, którym będzie się posługiwał w grze. Po wybraniu nicku gracz dołącza do lobby gdzie widzi wszystkich innych graczy i może zaznaczyć gotowość. Po zaznaczeniu gotowości przez wszystkich użytkowników rozpoczyna się rozgrywka. Gracz może poruszać się po arenie za pomocą klawiszy W, A, S, D i strzelać za pomocą strzałek. Po wejściu na pole z ulepszeniem gracz je automatycznie podnosi. Za każdą eliminację przeciwnika gracz zdobywa punkt. Grę wygrywa gracz, który zdobędzie wcześniej określoną liczbę punktów.
 
 == Działanie z punktu widzenia serwera
 Po połączeniu się klientów serwer rozpoczyna grę. Oczekuje na akcje od klientów, które od razu propaguje do klientów, celem zmniejszenia opóźnień. Serwer symuluje stan gry, przeprowadza symulację ticku oraz synchronizuje stan gry klientów. Kolejność symulacji jest ustalona i nie pozwala na sytuacje wyścigu. Po zakończeniu gry serwer wysyła informację o zakończeniu gry do klientów, którzy mogą zagrać kolejny mecz lub opuścić grę.
@@ -114,7 +114,12 @@ Każdy komunikat zawiera dodatkowo umieszczone na początku 1-bajtowe pole #emph
 #pagebreak()
 
 == Schemat działania
+=== Serwer wyboru gry
+Po uruchomieniu serwer odczytuje z pliku konfiguracyjnego nazwy serwerów gry oraz ich adresy IP:PORT a następnie umieszcza je w hashmapie. Gdy klient połączy się, serwer wysyła mu wspomnianą mapę w odpowiedni sposób a następnie rozłącza się. W tym momencie aplikacja kliencka jest odpowiadzialna za połączenie z odpowiednim serwerem gry wybranym przez użytkownika.
 
+Funkcjonalność ta ma na celu wygodę użytkownika, ponieważ może on w prosty sposób dołączyć do interesującego go serwera, a także podejście to umożliwia nieskomplikowaną jednoczesną obsługę wielu gier, zgodnie z regułą KISS.
+
+=== Serwer gry
 Przed rozpoczęciem gry serwer tworzy nową mapę. Klienci łączą się z serwerem oraz przesyłają informację o swoim nicku w grze. Serwer potwierdza dołączenie do poczekalni, jeśli są w niej wolne miejsca, oraz przesyła użytkownikowi informację o mapie, na której będzie rozgrywany mecz. Klienci mogą zgłaszać się do gry aż do jej rozpoczęcia. Serwer oczekuje na otrzymanie od każdego z zarejestrowanych graczy potwierdzenia gotowości. Kiedy otrzyma je od każdego z klientów, rozpoczyna się rozgrywka.
 
 W trakcie gry serwer oczekuje na akcje od klientów. Dozwolonymi akcjami jest zmiana stanu ruch (rozpoczęcie poruszania w jednym z 4 kierunków bądź zatrzymanie) lub strzał (w wybranym z 4 kierunków). Po odebraniu akcji serwer waliduje jej poprawność i umieszcza w kolejce rozkazów. Serwer propaguje akcję do pozostałych klientów. Pozwala to na szybszą aktualizację stanu gry u innych graczy i usprawnienie rozgrywki. Należy pamiętać, że stan gry jest symulowany na serwerze. Rozpropagowanie akcji ma na celu obniżenie opóźnień w grze, ale nie wpływa na rozgrywkę w inny sposób.
