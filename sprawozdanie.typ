@@ -15,7 +15,7 @@
 Celem projektu było stworzenie gry deathmatch, w której gracze mogą walczyć ze sobą na arenie. Do stworzenia gry użyto języka C++ oraz biblioteki Boost. Gra działa w trybie tekstowym, sterowanie odbywa się za pomocą klawiatury. Gracze mogą poruszać się po arenie, strzelać do siebie oraz zbierać ulepszenia (np szybsze strzelanie). Grę wygrywa gracz, który zdobędzie wcześniej określoną liczbę punktów, które zdobywa się poprzez eliminację przeciwników.
 
 == Działanie z punktu widzenia użytkownika
-Na początku gracz łączy się z serwerem nadrzędnym, który jest odgórnie zdefiniowany. Po nawiązaniu połączenia, użytkownik ma możliwość wyboru konkretnego serwera gry z listy. Po wybraniu odpowiedniego, gracz zostaje do niego połączony. Następnie wybiera nick, którym będzie się posługiwał w grze. Po wybraniu nicku gracz dołącza do lobby gdzie widzi wszystkich innych graczy i może zaznaczyć gotowość. Po zaznaczeniu gotowości przez wszystkich użytkowników rozpoczyna się rozgrywka. Gracz może poruszać się po arenie za pomocą klawiszy W, A, S, D i strzelać za pomocą strzałek. Po wejściu na pole z ulepszeniem gracz je automatycznie podnosi. Za każdą eliminację przeciwnika gracz zdobywa punkt. Grę wygrywa gracz, który zdobędzie wcześniej określoną liczbę punktów.
+Na początku gracz łączy się z serwerem nadrzędnym, który jest odgórnie zdefiniowany. Po nawiązaniu połączenia, użytkownik wpisuje nazwę serwera (lobby), do którego chce dołączyć. Jeśli serwer o podanej nazwie nie istnieje, tworzony jest nowy i gracz jest do niego automatycznie dołączany. Po udanym połączeniu z lobby gracz wybiera nick, którym będzie się posługiwał w grze. Po wybraniu nicku gracz dołącza do lobby gdzie widzi wszystkich innych graczy i może zaznaczyć gotowość. Po zaznaczeniu gotowości przez wszystkich użytkowników rozpoczyna się rozgrywka. Gracz może poruszać się po arenie za pomocą klawiszy W, A, S, D i strzelać za pomocą strzałek. Po wejściu na pole z ulepszeniem gracz je automatycznie podnosi. Za każdą eliminację przeciwnika gracz zdobywa punkt. Grę wygrywa gracz, który zdobędzie wcześniej określoną liczbę punktów.
 
 == Działanie z punktu widzenia serwera
 Po połączeniu się klientów serwer rozpoczyna grę. Oczekuje na akcje od klientów, które od razu propaguje do klientów, celem zmniejszenia opóźnień. Serwer symuluje stan gry, przeprowadza symulację ticku oraz synchronizuje stan gry klientów. Kolejność symulacji jest ustalona i nie pozwala na sytuacje wyścigu. Po zakończeniu gry serwer wysyła informację o zakończeniu gry do klientów, którzy mogą zagrać kolejny mecz lub opuścić grę.
@@ -35,15 +35,56 @@ Gracz wysyła tylko informacje o akcjach które wykonuje (wysyła np "zaczynam i
 
 = Struktura komunikatów
 Każdy komunikat zawiera dodatkowo umieszczone na początku 1-bajtowe pole #emph([packet_id]) oznaczające jego rodzaj.
-#set align(center)
+
 #table(
   columns: (auto, auto, auto),
+  table.cell(colspan: 3, align(center)[*Żądanie o utworzenie serwera (lobby) (Klient -> Serwer)*], align: center),
+  align(center)[*Nazwa pola*], align(center)[*Typ danych*], align(center)[*Opis*],
+  [map_id], [int32], [id żądanej mapy do rozgrywki],
+  [server_name_length], [int32], [Długość nazwy serwera],
+  [server_name], [char[]], [Nazwa serwera o długości server_name_length]
+)
+#pagebreak()
+
+#table(
+  columns: (auto, auto, auto),
+  table.cell(colspan: 3, align(center)[*Potwierdzenie utworzenia serwera (Serwer -> Kolejka)*], align: center),
+  align(center)[*Nazwa pola*], align(center)[*Typ danych*], align(center)[*Opis*],
+  [port], [int32], [Port nowoutworzonego serwera lub żądanego po nazwie. Wartość specjalna: -1, jeśli wystąpił błąd]
+)
+
+#table(
+  columns: (auto, auto, auto),
+  table.cell(colspan: 3, align(center)[*Żądanie o dołączenie do serwera (lobby) (Klient -> Serwer)*], align: center),
+  align(center)[*Nazwa pola*], align(center)[*Typ danych*], align(center)[*Opis*],
+  [server_name_length], [int32], [Długość nazwy serwera],
+  [server_name], [char[]], [Nazwa serwera o długości server_name_length]
+)
+
+#table(
+  columns: (auto, auto, auto),
+  table.cell(colspan: 3, align(center)[*Informacja o porcie serwera (Serwer -> Klient)*], align: center),
+  align(center)[*Nazwa pola*], align(center)[*Typ danych*], align(center)[*Opis*],
+  [port], [int32], [Port nowoutworzonego serwera lub żądanego po nazwie. Wartość specjalna: -1, jeśli żądany serwer jest w trakcie gry albo utworzenie nowego nie powiodło się]
+)
+
+#table(
+  columns: (auto, auto, 1fr),
   table.cell(colspan: 3, align(center)[*Dołączenie do gry (Klient -> Serwer)*], align: center),
   align(center)[*Nazwa pola*], align(center)[*Typ danych*], align(center)[*Opis*],
   [nick_length], [int32], [Długość nicku gracza (maksymalnie: 20)],
   [nick], [char[]], [Nick gracza o długości nick_length],
 )
-#set align(left)
+
+#table(
+  columns: (auto, auto, 1fr),
+  table.cell(colspan: 3, align(center)[*Propagacja dołączenia gracza do gry (Serwer -> Klient)*], align: center),
+  align(center)[*Nazwa pola*], align(center)[*Typ danych*], align(center)[*Opis*],
+  [player_id], [int32], [id, jakie zostało nadane temu graczowi],
+  [nick_length], [int32], [Długość nicku gracza (maksymalnie: 20)],
+  [nick], [char[]], [Nick gracza o długości nick_length],
+)
+
 #table(
   columns: (auto, auto, auto),
   table.cell(colspan: 3, align(center)[*Przesłanie informacji o mapie (Serwer -> Klient)*], align: center),
@@ -53,11 +94,18 @@ Każdy komunikat zawiera dodatkowo umieszczone na początku 1-bajtowe pole #emph
   [height], [int32], [Wysokość mapy],
   [tiles], [MapTile[]], [Tablica kafelków mapy o rozmiarach width*height, każdy kafelek ma rozmiar 4 bajtów],
 )
-
+#pagebreak()
 #table(
   columns: (100%),
   table.cell(align(center)[*Informacja o gotowości gracza (Klient -> Serwer)*], align: center),
   table.cell(align(center)[Przesyłany jest jedynie odpowiedni #emph([packet_id])], align: center),
+)
+
+#table(
+  columns: (auto, auto, 1fr),
+  table.cell(colspan: 3, align(center)[*Propagacja gotowości gracza (Serwer->Klient) *], align: center),
+  align(center)[*Nazwa pola*], align(center)[*Typ danych*], align(center)[*Opis*],
+  [player_id], [int32], [id gracza],
 )
 
 #table(
@@ -80,21 +128,34 @@ Każdy komunikat zawiera dodatkowo umieszczone na początku 1-bajtowe pole #emph
   [action], [int32(enum)], [Jedna z wartości:\ 0 - poruszanie się w górę, 1 - poruszanie się w dół, 2 - poruszanie się w lewo, 3 - poruszanie się w prawo, 4 - wystrzelenie pocisku w górę, 5 - wystrzelenie pocisku w dół, 6 - wystrzelenie pocisku w lewo, 7 - wystrzelenie pocisku w prawo, 8 - zatrzymanie ruchu gracza],
   [player_id], [int32], [id gracza, którego dotyczy akcja]
 )
-#set align(center)
+
 #table(
-  columns: (auto, auto, auto),
+  columns: (auto, auto, 1fr),
   table.cell(colspan: 3, align(center)[*Informacja o końcu gry (Serwer -> Klient)*], align: center),
   align(center)[*Nazwa pola*], align(center)[*Typ danych*], align(center)[*Opis*],
   [scores_len], [int32], [Długość tablicy wyników],
   [scores], [PlayerScore[]], [Tablica struktur PlayerScore.\ Pola struktury:\ #emph[player_id] - id gracza (int32)\ #emph[score] - wynik gracza (int32)\ Rozmiar: 8 bajtów]
 )
-#set align(left)
+
 #table(
   columns: (100%),
   table.cell(align(center)[*Informacja o opuszczeniu gry (Klient -> Serwer)*], align: center),
   table.cell(align(center)[Przesyłany jest jedynie odpowiedni #emph([packet_id])], align: center),
 )
-#pagebreak()
+
+#table(
+  columns: (auto, auto, 1fr),
+  table.cell(colspan: 3, align(center)[*Propagacja opuszczenia gry przez gracza (Serwer -> Klient)*], align: center),
+  align(center)[*Nazwa pola*], align(center)[*Typ danych*], align(center)[*Opis*],
+  [player_id], [int32], [id gracza],
+)
+
+#table(
+  columns: (100%),
+  table.cell(align(center)[*Informacja o pustym serwerze (Serwer->Kolejka)*], align: center),
+  table.cell(align(center)[Przesyłany jest jedynie odpowiedni #emph([packet_id])], align: center),
+)
+
 #table(
   columns: (auto, auto, auto),
   table.cell(colspan: 3, align(center)[*Synchronizacja stanu gry (Serwer -> Klient)*], align: center),
@@ -107,17 +168,14 @@ Każdy komunikat zawiera dodatkowo umieszczone na początku 1-bajtowe pole #emph
   [height], [int32], [Wysokość mapy],
   [tiles], [MapTile[]], [Tablica kafelków mapy o rozmiarach width*height, każdy kafelek ma rozmiar 4 bajtów],
 )
-#set align(left)
 #pagebreak()
 = Diagram sekwencji
 #align(center)[#image("diagrams/sequence.png", height: 95%)]
 #pagebreak()
 
 == Schemat działania
-=== Serwer wyboru gry
-Po uruchomieniu serwer odczytuje z pliku konfiguracyjnego nazwy serwerów gry oraz ich adresy IP:PORT a następnie umieszcza je w hashmapie. Gdy klient połączy się, serwer wysyła mu wspomnianą mapę w odpowiedni sposób a następnie rozłącza się. W tym momencie aplikacja kliencka jest odpowiadzialna za połączenie z odpowiednim serwerem gry wybranym przez użytkownika.
-
-Funkcjonalność ta ma na celu wygodę użytkownika, ponieważ może on w prosty sposób dołączyć do interesującego go serwera, a także podejście to umożliwia nieskomplikowaną jednoczesną obsługę wielu gier, zgodnie z regułą KISS.
+=== Serwer kolejkowania
+Poza serwerem gry, stworzony zostanie serwer kolejkowania. Będzie on odpowiedzialny za zarządzanie kilkoma serwerami gry. Kolejka, na żadanie klientów, pozwala na utworzenie kilku osobnych serwerów gry. Gracze przy tworzeniu gry przesyłają nazwę rozgrywki, a kolejeka tworzy nowy proces potomny serwera na losowo wybranym porcie. Przysyła informację o porcie serwera do klienta. Nazwy rozgrywek oraz informacje o portach zapisane są w hashmapie. Następnie, jeśli następny gracz chce dołączyć do tej rozgrywki, przysyła informację o jej nazwie do kolejki, a ta zwraca informację o porcie odpowiedniego serwera. Gdy serwer jest pusty, może zgłosić ten fakt do systemu kolejkowania, aby zostać usuniętym. Alternatywnie, system kolejkowania automatycznie usuwać będzie puste serwery co określony interwał czasu.
 
 === Serwer gry
 Przed rozpoczęciem gry serwer tworzy nową mapę. Klienci łączą się z serwerem oraz przesyłają informację o swoim nicku w grze. Serwer potwierdza dołączenie do poczekalni, jeśli są w niej wolne miejsca, oraz przesyła użytkownikowi informację o mapie, na której będzie rozgrywany mecz. Klienci mogą zgłaszać się do gry aż do jej rozpoczęcia. Serwer oczekuje na otrzymanie od każdego z zarejestrowanych graczy potwierdzenia gotowości. Kiedy otrzyma je od każdego z klientów, rozpoczyna się rozgrywka.
@@ -135,7 +193,7 @@ Następnie przeprowadzana jest symulacja ticku.
 - Jeśli gracz zginął w tym ticku, to jest on przesuwany na ustalone pole odrodzenia, jeśli jest zajęte to wybierane jest najbliższe puste pole według ustalonego algorytmu.
 
 Po upłynięciu określonego czasu gry mecz kończy się. Serwer wysyła informację o zakończeniu gry do wszystkich klientów. Klienci otrzymują informację o zwycięzcy oraz wynikach meczu. Klienci mogą ponownie potwierdzić gotowość i zagrać kolejny mecz, lub opuścić poczekalnię i rozłączyć się z serwerem.
-
+#pagebreak()
 = Diagram klas
 #align(center)[#image("diagrams/class.png")]
 #pagebreak()

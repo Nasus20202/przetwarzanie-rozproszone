@@ -3,7 +3,7 @@ sequenceDiagram
     participant Gracz 2
     participant Kolejka
 
-    Gracz 1->>Kolejka: Utorzenie lobby
+    Gracz 1->>Kolejka: Utworzenie lobby
     activate Kolejka
     create participant Serwer
     Kolejka->>Serwer: Utworzenie serwera gry
@@ -19,7 +19,7 @@ sequenceDiagram
 
     Gracz 2->>Kolejka: Prośba o dołączenie do gry
     activate Kolejka
-    Kolejka-->>Gracz 2: Przesłanie informacji o porce serwera
+    Kolejka-->>Gracz 2: Przesłanie informacji o porcie serwera
     deactivate Kolejka
     Gracz 2->>Serwer: Dołączanie do gry
     activate Serwer
