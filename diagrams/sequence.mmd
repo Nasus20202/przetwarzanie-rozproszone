@@ -1,19 +1,41 @@
 sequenceDiagram
     participant Gracz 1
-    participant Serwer
     participant Gracz 2
+    participant Kolejka
+
+    Gracz 1->>Kolejka: Utorzenie lobby
+    activate Kolejka
+    create participant Serwer
+    Kolejka->>Serwer: Utworzenie serwera gry
+    Serwer-->>Kolejka: Potwierdzenie utworzenia serwera
+    Kolejka-->>Gracz 1: Przesłanie informacji o porcie serwera
+    deactivate Kolejka
+
 
     Gracz 1->>Serwer: Dołączanie do gry
     activate Serwer
     Serwer-->>Gracz 1: Przesłanie informacji o mapie
     deactivate Serwer
+
+    Gracz 2->>Kolejka: Prośba o dołączenie do gry
+    activate Kolejka
+    Kolejka-->>Gracz 2: Przesłanie informacji o porce serwera
+    deactivate Kolejka
     Gracz 2->>Serwer: Dołączanie do gry
     activate Serwer
     Serwer-->>Gracz 2: Przesłanie informacji o mapie
+    Serwer-->>Gracz 1: Przesłanie informacji o dołączeniu drugiego gracza
     deactivate Serwer
 
     Gracz 1->>Serwer: Przesłanie informacji o gotowości
+    activate Serwer
+    Serwer-->>Gracz 2: Rozpropagowanie gotowości pierwszego gracza
+    deactivate Serwer
+
     Gracz 2->>Serwer: Przesłanie informacji o gotowości
+    activate Serwer
+    Serwer-->>Gracz 1: Rozpropagowanie gotowości drugiego gracza
+    deactivate Serwer
     par
         Serwer-->>Gracz 1: Rozpoczęcie gry
         activate Serwer
@@ -22,13 +44,13 @@ sequenceDiagram
         deactivate Serwer
     end
 
-    Note over Gracz 1, Gracz 2: Rozgrywka
+    Note over Gracz 1, Serwer: Rozgrywka
 
     loop
         alt Ruch gracza
             Gracz 1->>Serwer: Przesłanie informacji o akcji
             activate Serwer
-            Note right of Serwer: Sprawdzenie poprawności akcji
+            Note left of Serwer: Sprawdzenie poprawności akcji
             par
                 Serwer-->>Gracz 1: Rozpropagowanie akcji
             and
@@ -46,7 +68,7 @@ sequenceDiagram
         end
     end
 
-    Note over Gracz 1, Gracz 2: Zakończenie rozgrywki
+    Note over Gracz 1, Serwer: Zakończenie rozgrywki
 
     par
         Serwer-->>Gracz 1: Przesłanie informacji o końcu gry
@@ -57,6 +79,17 @@ sequenceDiagram
     end
 
     Gracz 1->>Serwer: Opuszczenie gry
+    activate Serwer
+    Serwer-->>Gracz 2: Informacja o opuszczeniu gry przez pierwszego gracza
+    deactivate Serwer
     
     Gracz 2->>Serwer: Opuszczenie gry
+    activate Serwer
+    Serwer-->>Gracz 1: Informacja o opuszczeniu gry przez drugiego gracza
+    deactivate Serwer
+
+    Serwer->>Kolejka: Informacja o pustym serwerze
+    activate Kolejka
+    Kolejka->>Serwer: Usunięcie serwera
+    deactivate Kolejka
 
