@@ -12,23 +12,23 @@
 #set heading(numbering: "1.")
 
 = Wstęp
-Celem projektu było stworzenie gry deathmatch, w której gracze mogą walczyć ze sobą na arenie. Do stworzenia gry użyto języka C++ oraz biblioteki Boost. Gra działa w trybie tekstowym, sterowanie odbywa się za pomocą klawiatury. Gracze mogą poruszać się po arenie, strzelać do siebie oraz zbierać ulepszenia (np. szybsze strzelanie). Grę wygrywa gracz, który zdobędzie wcześniej określoną liczbę punktów, które zdobywa się poprzez eliminację przeciwników.
+Celem projektu było stworzenie gry Deathmatch, w której gracze mogą walczyć ze sobą na arenie. Do stworzenia gry użyto języka C++ oraz biblioteki Boost. Gra działa w trybie tekstowym, sterowanie odbywa się za pomocą klawiatury. Gracze mogą poruszać się po arenie, strzelać do siebie oraz zbierać ulepszenia (np. szybsze strzelanie). Grę wygrywa gracz, który zdobędzie wcześniej określoną liczbę punktów, które zdobywa się poprzez eliminację przeciwników.
 
 == Działanie z punktu widzenia użytkownika
 Na początku gracz łączy się z serwerem nadrzędnym, który jest odgórnie zdefiniowany. Po nawiązaniu połączenia gracz wybiera nick, którym będzie się posługiwał w grze. Następnie użytkownik wpisuje nazwę serwera (lobby), do którego chce dołączyć. Jeśli serwer o podanej nazwie nie istnieje, tworzony jest nowy i gracz jest do niego automatycznie dołączany. Gdy wszystko się powiodło, gracz może zaznaczyć gotowość. Po zaznaczeniu gotowości przez wszystkich użytkowników na serwerze rozpoczyna się rozgrywka. Gracz może poruszać się po arenie za pomocą klawiszy W, A, S, D i strzelać za pomocą strzałek. Po wejściu na pole z ulepszeniem gracz je automatycznie podnosi. Za każdą eliminację przeciwnika gracz zdobywa punkt. Grę wygrywa gracz, który zdobędzie wcześniej określoną liczbę punktów.
 
 == Działanie z punktu widzenia serwera
-Po połączeniu się klientów serwer rozpoczyna grę. Oczekuje na akcje od klientów, które od razu propaguje do klientów, celem zmniejszenia opóźnień. Serwer symuluje stan gry, przeprowadza symulację ticku oraz synchronizuje stan gry klientów. Kolejność symulacji jest ustalona i nie pozwala na sytuacje wyścigu. Po zakończeniu gry serwer wysyła informację o zakończeniu gry do klientów, którzy mogą zagrać kolejny mecz lub opuścić grę.
+Po połączeniu się klientów serwer rozpoczyna grę. Oczekuje na akcje od klientów, które od razu propaguje do pozostałych klientów, celem zmniejszenia opóźnień. Serwer symuluje stan gry, przeprowadza symulację ticku oraz synchronizuje stan gry klientów. Kolejność symulacji jest ustalona i nie pozwala na sytuacje wyścigu. Po zakończeniu gry serwer wysyła informację o końcu rozgrywki do klientów, którzy mogą zagrać kolejny mecz lub opuścić grę.
 
 = Przypuszczalne problemy
 == Co się stanie jak gracz wejdzie w nieśmiertelność i zostanie trafiony w tym samym czasie
-Wszystkie wydarzenia w grze będą przetwarzane w kolejce priorytetowej i wszystkie ulepszenia wykonają się przed sprawdzaniem trafień, analogicznie jeśli w tym samym momencie gracz się ruszy i zostanie trafiony, to najpierw przetworzone zostaną wszystkie ruchy graczy, a dopiero potem sprawdzanie trafień.
+Wszystkie wydarzenia w grze będą przetwarzane w kolejce priorytetowej i wszystkie ulepszenia wykonają się przed sprawdzaniem trafień. Analogicznie, jeśli w tym samym momencie gracz się ruszy i zostanie trafiony, to najpierw przetworzone zostaną wszystkie ruchy graczy, a dopiero potem sprawdzanie trafień.
 
 == Niska responsywność gry
-Ze względu na niską częstotliwość odświeżania konsoli w trybie tekstowym, gra może wydawać się nie responsywna i często może dochodzić do sytuacji gdzie dwóch graczy w jednym momencie robią ruch na to samo pole (wtedy się zderzają i obydwoje zatrzymują), ponieważ między pojedynczymi aktualizacjami może minąć dużo czasu. Aby temu zaradzić, sama gra będzie się odświeżać 60 razy na sekundę niezależnie od prędkości odświeżania konsoli, dzięki czemu dużo częściej o wyniku jakieś akcji będzie decydować zręczność gracza, a nie to czy akurat w tym momencie konsola się odświeżyła.
+Ze względu na niską częstotliwość odświeżania konsoli w trybie tekstowym, gra może wydawać się nie responsywna, i często może dochodzić do sytuacji, gdzie dwóch graczy w jednym momencie robi ruch na to samo pole (wtedy się zderzają i obydwoje zatrzymują), ponieważ między pojedynczymi aktualizacjami może minąć dużo czasu. Aby temu zaradzić, sama gra będzie się odświeżać 60 razy na sekundę niezależnie od prędkości odświeżania konsoli, dzięki czemu dużo częściej o wyniku jakieś akcji będzie decydować zręczność gracza, a nie to, czy akurat w tym momencie konsola się odświeżyła.
 
 == Co jeśli pakiety UDP nie przyjdą w kolejności?
-Samo zdarzenie jest mało prawdopodobne, ponieważ pakiety są wysyłane tylko w momencie, gdy gracz kliknie lub zwolni przycisk, co musiałoby się stać szybciej niż opóźnienie w dostarczeniu pakietu. W przypadku gdyby jednak tak się stało, to co określony czas, najprawdopodobniej co każde odświeżenie konsoli, serwer będzie wysyłał stan gry, co pozwoli na synchronizację między klientami oraz serwerem.
+Samo zdarzenie jest mało prawdopodobne, ponieważ pakiety są wysyłane tylko w momencie, gdy gracz kliknie lub zwolni przycisk, co musiałoby się stać szybciej niż opóźnienie w dostarczeniu pakietu. W przypadku, gdyby jednak tak się stało, to co określony czas, najprawdopodobniej co każde odświeżenie konsoli, serwer będzie wysyłał stan gry, co pozwoli na synchronizację między klientami oraz serwerem.
 
 == Co gdyby gracz zmienił kod gry i zaczął wysyłać fałszywe pakiety?
 Gracz wysyła tylko informacje o akcjach, które wykonuje (wysyła np. "zaczynam iść do przodu", a nie "moja pozycja to X Y"), a serwer sam symuluje stan gry, który potem rozsyła innym klientom. Dzięki takiemu rozwiązaniu oszukiwanie nie będzie możliwe.
@@ -53,7 +53,7 @@ Każdy komunikat zawiera dodatkowo umieszczone na początku 1-bajtowe pole #emph
 #pagebreak()
 #table(
   columns: (auto, auto, auto),
-  table.cell(colspan: 3, align(center)[*Żądanie o dołączenie do serwera (lobby) (Klient -> Serwer)*], align: center),
+  table.cell(colspan: 3, align(center)[*Żądanie o dołączenie do serwera (lobby) (Klient -> Kolejka)*], align: center),
   align(center)[*Nazwa pola*], align(center)[*Typ danych*], align(center)[*Opis*],
   [server_name_length], [int32], [Długość nazwy serwera],
   [server_name], [char[]], [Nazwa serwera o długości server_name_length]
@@ -63,7 +63,7 @@ Każdy komunikat zawiera dodatkowo umieszczone na początku 1-bajtowe pole #emph
   columns: (auto, auto, auto),
   table.cell(colspan: 3, align(center)[*Informacja o porcie serwera (Kolejka -> Klient)*], align: center),
   align(center)[*Nazwa pola*], align(center)[*Typ danych*], align(center)[*Opis*],
-  [port], [int32], [Port nowoutworzonego serwera lub żądanego po nazwie. Wartość specjalna: -1, jeśli wystąpił błąd]
+  [port], [int32], [Port nowo utworzonego serwera lub żądanego po nazwie. Wartość specjalna: -1, jeśli wystąpił błąd]
 )
 
 #table(
@@ -173,7 +173,7 @@ Każdy komunikat zawiera dodatkowo umieszczone na początku 1-bajtowe pole #emph
 
 == Schemat działania
 === Serwer kolejkowania
-Poza serwerem gry, stworzony zostanie serwer kolejkowania. Będzie on odpowiedzialny za zarządzanie kilkoma serwerami gry. Kolejka, na żadanie klientów, pozwala na utworzenie kilku osobnych serwerów gry. Gracze przy tworzeniu gry przesyłają nazwę rozgrywki, a kolejeka tworzy nowy proces potomny serwera na losowo wybranym porcie. Przysyła informację o porcie serwera do klienta. Nazwy rozgrywek oraz informacje o portach zapisane są w hashmapie. Następnie, jeśli następny gracz chce dołączyć do tej rozgrywki, przysyła informację o jej nazwie do kolejki, a ta zwraca informację o porcie odpowiedniego serwera. Gdy serwer jest pusty, może zgłosić ten fakt do systemu kolejkowania, aby zostać usuniętym. Alternatywnie, system kolejkowania automatycznie usuwać będzie puste serwery co określony interwał czasu.
+Poza serwerem gry, stworzony zostanie serwer kolejkowania. Będzie on odpowiedzialny za zarządzanie kilkoma serwerami gry. Kolejka, na żadanie klientów, pozwala na utworzenie kilku osobnych serwerów gry. Gracze, przy tworzeniu gry przesyłają nazwę rozgrywki, a kolejeka tworzy nowy proces potomny serwera na losowo wybranym porcie. Przysyła informację o porcie serwera do klienta. Nazwy rozgrywek oraz informacje o portach zapisane są w hashmapie. Następnie, jeśli następny gracz chce dołączyć do tej rozgrywki, przysyła informację o jej nazwie do kolejki, a ta zwraca informację o porcie odpowiedniego serwera. Gdy serwer jest pusty, może zgłosić ten fakt do systemu kolejkowania, aby zostać usunięty. Alternatywnie, system kolejkowania automatycznie usuwać będzie puste serwery co określony interwał czasu.
 
 === Serwer gry
 Przed rozpoczęciem gry serwer tworzy nową mapę. Klienci łączą się z serwerem oraz przesyłają informację o swoim nicku w grze. Serwer potwierdza dołączenie do poczekalni oraz przesyła użytkownikowi informację o mapie, na której będzie rozgrywany mecz. Klienci mogą zgłaszać się do gry aż do jej rozpoczęcia. Serwer oczekuje na otrzymanie od każdego z zarejestrowanych graczy potwierdzenia gotowości. Kiedy otrzyma je od każdego z klientów, rozpoczyna się rozgrywka.
@@ -188,9 +188,9 @@ Następnie przeprowadzana jest symulacja ticku.
 - Następnie sprawdzana jest kolizja ze ścianami mapy. W przypadku próby wejścia w ścianę, gracz jest zatrzymywany. Jeśli gracz ma ulepszenie, które pozwala na przechodzenie przez ściany, to nie jest zatrzymywany. Jeśli ulepszenie to się skończyło, a gracz jest "w ścianie", przesuwamy go na najbliższe wolne pole według ustalonego algorytmu.
 - Sprawdzamy kolizje z ulepszeniami. Jeśli gracz wejdzie na pole z ulepszeniem, gracz podnosi je, a ulepszenie znika z mapy. Jeśli gracz już ma inne ulepszenie, to zostaje ono zastąpione nowym.
 - Następnie przesuwane są pociski, które sprawdzają kolizje z graczami oraz ścianami. W przypadku kolizji z graczem, gracz ginie, a strzelec zdobywa punkt. W przypadku kolizji ze ścianą pocisk znika.
-- Jeśli gracz zginął w tym ticku, to jest on przesuwany na ustalone pole odrodzenia, jeśli jest zajęte to wybierane jest najbliższe puste pole według ustalonego algorytmu.
+- Jeśli gracz zginął w tym ticku, to jest on przesuwany na ustalone pole odrodzenia, jeśli jest zajęte, to wybierane jest najbliższe puste pole według ustalonego algorytmu.
 
-Po upłynięciu określonego czasu gry mecz kończy się. Serwer wysyła informację o zakończeniu gry do wszystkich klientów. Klienci otrzymują informację o zwycięzcy oraz wynikach meczu. Klienci mogą ponownie potwierdzić gotowość i zagrać kolejny mecz lub opuścić poczekalnię i rozłączyć się z serwerem.
+Po upłynięciu określonego czasu gry lub uzyskaniu odpowiedniej ilości punktów przez gracza, mecz kończy się. Serwer wysyła informację o zakończeniu gry do wszystkich klientów. Klienci otrzymują informację o zwycięzcy oraz wynikach meczu. Klienci mogą ponownie potwierdzić gotowość i zagrać kolejny mecz lub opuścić poczekalnię i rozłączyć się z serwerem.
 = Sekcja krytyczna
 Informacje o stanie gry przechowywane są w klasie GameState. Dostęp do tej struktury ma tylko wątek główny, co uniemożliwia sytuacje wyścigów. Wątki socketów klientów mogą jedynie zgłaszać swoje akcje, ale nie mają bezspośredniego dostępu to instancji GameState. Pozwala to na zagwarantowanie spójności stanu gry.
 
@@ -211,6 +211,6 @@ Kluczowe z punktu widzenia synchronizacji gry są akcje wykonywane przez graczy,
 - Map - klasa reprezentująca mapę. Przechowuje informacje o szerokości, długości, kafelkach oraz ulepszeniach na mapie.
 - GameState - klasa reprezentująca stan gry. Przechowuje informacje o mapie, graczach, pociskach oraz czasie gry.
 - ServerGameController - klasa odpowiedzialna za zarządzanie grą na serwerze. Przechowuje informacje o stanie gry oraz podłączonych klientach. Zarządza grą, odbiera akcje od klientów, przetwarza je oraz przesyła stan gry do klientów.
-- PlayerGameController - klasa odpowiedzialna za zarządzanie grą na kliencie. Przechowuje informacje o stanie gry oraz połączeniu z serwerem. Zarządza grą, wysyła akcje do serwera, odbiera stan gry oraz zleca rysowanie stanu gry.
+- PlayerGameController - klasa odpowiedzialna za zarządzanie grą u klienta. Przechowuje informacje o stanie gry oraz połączeniu z serwerem. Zarządza grą, wysyła akcje do serwera, odbiera stan gry oraz zleca rysowanie stanu gry.
 
 
