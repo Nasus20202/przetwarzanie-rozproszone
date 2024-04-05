@@ -63,7 +63,7 @@ Każdy komunikat zawiera dodatkowo umieszczone na początku 1-bajtowe pole #emph
   columns: (auto, auto, auto),
   table.cell(colspan: 3, align(center)[*Informacja o porcie serwera (Kolejka -> Klient)*], align: center),
   align(center)[*Nazwa pola*], align(center)[*Typ danych*], align(center)[*Opis*],
-  [port], [int32], [Port nowo utworzonego serwera lub żądanego po nazwie. Wartość specjalna: -1, jeśli wystąpił błąd]
+  [port], [int32], [Port nowo utworzonego serwera lub żądanego po nazwie. Wartość specjalna: -1, jeśli wystąpił błąd]
 )
 
 #table(
@@ -173,7 +173,7 @@ Każdy komunikat zawiera dodatkowo umieszczone na początku 1-bajtowe pole #emph
 
 == Schemat działania
 === Serwer kolejkowania
-Poza serwerem gry, stworzony zostanie serwer kolejkowania. Będzie on odpowiedzialny za zarządzanie kilkoma serwerami gry. Kolejka, na żadanie klientów, pozwala na utworzenie kilku osobnych serwerów gry. Gracze, przy tworzeniu gry przesyłają nazwę rozgrywki, a kolejeka tworzy nowy proces potomny serwera na losowo wybranym porcie. Przysyła informację o porcie serwera do klienta. Nazwy rozgrywek oraz informacje o portach zapisane są w hashmapie. Następnie, jeśli następny gracz chce dołączyć do tej rozgrywki, przysyła informację o jej nazwie do kolejki, a ta zwraca informację o porcie odpowiedniego serwera. Gdy serwer jest pusty, może zgłosić ten fakt do systemu kolejkowania, aby zostać usunięty. Alternatywnie, system kolejkowania automatycznie usuwać będzie puste serwery co określony interwał czasu.
+Poza serwerem gry, stworzony zostanie serwer kolejkowania. Będzie on odpowiedzialny za zarządzanie kilkoma serwerami gry. Kolejka, na żądanie klientów, pozwala na utworzenie kilku osobnych serwerów gry. Gracze, przy tworzeniu gry przesyłają nazwę rozgrywki, a kolejka tworzy nowy proces potomny serwera na losowo wybranym porcie. Przesyła informację o porcie serwera do klienta. Nazwy rozgrywek oraz informacje o portach zapisane są w hashmapie. Następnie, jeśli następny gracz chce dołączyć do tej rozgrywki, przesyła informację o jej nazwie do kolejki, a ta zwraca informację o porcie odpowiedniego serwera. Gdy serwer jest pusty, może zgłosić ten fakt do systemu kolejkowania, aby zostać usunięty. Alternatywnie, system kolejkowania automatycznie usuwać będzie puste serwery co określony interwał czasu.
 
 === Serwer gry
 Przed rozpoczęciem gry serwer tworzy nową mapę. Klienci łączą się z serwerem oraz przesyłają informację o swoim nicku w grze. Serwer potwierdza dołączenie do poczekalni oraz przesyła użytkownikowi informację o mapie, na której będzie rozgrywany mecz. Klienci mogą zgłaszać się do gry aż do jej rozpoczęcia. Serwer oczekuje na otrzymanie od każdego z zarejestrowanych graczy potwierdzenia gotowości. Kiedy otrzyma je od każdego z klientów, rozpoczyna się rozgrywka.
@@ -192,7 +192,7 @@ Następnie przeprowadzana jest symulacja ticku.
 
 Po upłynięciu określonego czasu gry lub uzyskaniu odpowiedniej ilości punktów przez gracza, mecz kończy się. Serwer wysyła informację o zakończeniu gry do wszystkich klientów. Klienci otrzymują informację o zwycięzcy oraz wynikach meczu. Klienci mogą ponownie potwierdzić gotowość i zagrać kolejny mecz lub opuścić poczekalnię i rozłączyć się z serwerem.
 = Sekcja krytyczna
-Informacje o stanie gry przechowywane są w klasie GameState. Dostęp do tej struktury ma tylko wątek główny, co uniemożliwia sytuacje wyścigów. Wątki socketów klientów mogą jedynie zgłaszać swoje akcje, ale nie mają bezspośredniego dostępu to instancji GameState. Pozwala to na zagwarantowanie spójności stanu gry.
+Informacje o stanie gry przechowywane są w klasie GameState. Dostęp do tej struktury ma tylko wątek główny, co uniemożliwia sytuacje wyścigów. Wątki socketów klientów mogą jedynie zgłaszać swoje akcje, ale nie mają bezpośredniego dostępu to instancji GameState. Pozwala to na zagwarantowanie spójności stanu gry.
 
 Kluczowe z punktu widzenia synchronizacji gry są akcje wykonywane przez graczy, czyli ruch oraz strzał. Informacje o tych wydarzeniach umieszczane są w synchronizowanej między wątkami kolejce priorytetowej (różne akcje mają różne priorytety). W trakcie obsługi ticku wątek główny symulacji gry blokuje dostęp do tej struktury. W tym czasie wątki socketów graczy nie mogą umieszczać w niej akcji. Po przeprowadzeniu symulacji ticku kolejka jest odblokowywana przez główny wątek.
 #pagebreak()
@@ -212,5 +212,6 @@ Kluczowe z punktu widzenia synchronizacji gry są akcje wykonywane przez graczy,
 - GameState - klasa reprezentująca stan gry. Przechowuje informacje o mapie, graczach, pociskach oraz czasie gry.
 - ServerGameController - klasa odpowiedzialna za zarządzanie grą na serwerze. Przechowuje informacje o stanie gry oraz podłączonych klientach. Zarządza grą, odbiera akcje od klientów, przetwarza je oraz przesyła stan gry do klientów.
 - PlayerGameController - klasa odpowiedzialna za zarządzanie grą u klienta. Przechowuje informacje o stanie gry oraz połączeniu z serwerem. Zarządza grą, wysyła akcje do serwera, odbiera stan gry oraz zleca rysowanie stanu gry.
+
 
 
