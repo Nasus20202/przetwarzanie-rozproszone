@@ -2,6 +2,7 @@
   font: "New Computer Modern",
   size: 13pt
 )
+#set par(justify: true)
 
 #set page(paper: "a4", margin: (x: 2cm, y: 2cm))
 #set align(center)
