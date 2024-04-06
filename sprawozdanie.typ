@@ -213,5 +213,10 @@ Kluczowe z punktu widzenia synchronizacji gry są akcje wykonywane przez graczy,
 - ServerGameController - klasa odpowiedzialna za zarządzanie grą na serwerze. Przechowuje informacje o stanie gry oraz podłączonych klientach. Zarządza grą, odbiera akcje od klientów, przetwarza je oraz przesyła stan gry do klientów.
 - PlayerGameController - klasa odpowiedzialna za zarządzanie grą u klienta. Przechowuje informacje o stanie gry oraz połączeniu z serwerem. Zarządza grą, wysyła akcje do serwera, odbiera stan gry oraz zleca rysowanie stanu gry.
 
+#pagebreak()
 
+= Prototyp interfejsu klienta
+
+#align(center)[#image("diagrams/client-ui.png")]
+Interfejs użytkownika przedstawiający mapę w trakcie rozgrywki. Poziome i pionowe linie ograniczają zakres mapy. Litery oznaczają kolejnych graczy. Wyjątkiem jest litera 'X', która przedstawia wzmocnienie. Znaki hashtag (\#) oznaczają ściany umieszone na planszy. Pociski wystrzelone przez graczy reprezentują litery 'o'. 
 
